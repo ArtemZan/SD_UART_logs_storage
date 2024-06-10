@@ -1,0 +1,1 @@
+void SD_debug_log(const char* format, ...);
