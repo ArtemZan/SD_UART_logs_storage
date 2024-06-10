@@ -37,11 +37,11 @@
 
 #define ECHO_UART_PORT_NUM (CONFIG_EXAMPLE_UART_PORT_NUM)
 #define ECHO_UART_BAUD_RATE (CONFIG_EXAMPLE_UART_BAUD_RATE)
-#define ECHO_TASK_STACK_SIZE (CONFIG_EXAMPLE_TASK_STACK_SIZE)
+#define ECHO_TASK_STACK_SIZE 4096
 
 static const char *TAG = "UART TEST";
 
-#define BUF_SIZE (1024)
+#define BUF_SIZE (256)
 
 static void read_uart_task(void *arg)
 {
@@ -68,21 +68,26 @@ static void read_uart_task(void *arg)
     // Configure a temporary buffer for the incoming data
     char *all_data = (char *)malloc(BUF_SIZE);
     all_data[0] = '\0';
-    char *data = (char *)malloc(256);
+    char *data = (char *)malloc(64);
 
     while (1)
     {
-        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, 255, 20 / portTICK_PERIOD_MS);
+        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, 63, 20 / portTICK_PERIOD_MS);
 
         if (len)
         {
             if (strlen((char *)all_data) + len >= BUF_SIZE)
             {
+                printf("Reached buffer max: %s \n", all_data);
                 SD_debug_log("Reached buffer max: %d", strlen((char *)all_data));
+                printf("Debug log current chunk \n");
                 SD_debug_log("Current chunk: %s", (char *)all_data);
+                printf("Store the chunk \n");
                 on_uart_read((char *)all_data);
                 all_data[0] = '\0';
             }
+
+            printf("strcat \n");
 
             data[len] = '\0';
             all_data = strcat(all_data, (const char *)data);
